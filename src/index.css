@@ -148,11 +148,13 @@ h3 {
 }
 
 .type-tile {
+  display: flex;
   padding: 0.1rem 0.5rem;
   border-radius: var(--border-radius-small);
   font-size: 0.8rem;
   width: fit-content;
   font-weight: 600;
+  
 }
 
 .stats-card {

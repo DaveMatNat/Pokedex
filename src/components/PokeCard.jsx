@@ -66,6 +66,18 @@ function PokeCard({ selectedPokemon }) {
         }
     }
 
+    function toTitleCase(str) {
+        if (!str) {
+            return ""; // Handle empty or null strings
+        }
+
+        return str
+            .toLowerCase()
+            .split(' ')
+            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+            .join(' ');
+    }
+
     useEffect(() => {
         // if loading, exit logic
         if (loading || !localStorage) { return }
@@ -98,9 +110,9 @@ function PokeCard({ selectedPokemon }) {
                 // console.log(pokemonData)
 
                 let { moves } = pokemonData
-                moves.sort((a,b) => a.move.name.localeCompare(b.move.name))
-                setData({ ...pokemonData, moves})
-                
+                moves.sort((a, b) => a.move.name.localeCompare(b.move.name))
+                setData({ ...pokemonData, moves })
+
                 console.log('Fetched pokemon data')
                 cache[selectedPokemon] = pokemonData
                 localStorage.setItem("pokedex", JSON.stringify(cache))
@@ -138,7 +150,7 @@ function PokeCard({ selectedPokemon }) {
             </Modal>)}
             <div>
                 <h4>#{getFullPokedexNumber(selectedPokemon)}</h4>
-                <h2>{name}</h2>
+                <h2>{toTitleCase(name)}</h2>
             </div>
             <div className="type-container">
                 {types.map((typeObj, typeIndex) => {
@@ -157,6 +169,7 @@ function PokeCard({ selectedPokemon }) {
                 })}
             </div>
             <h3>Stats</h3>
+            <hr />
             <div className="stats-card">
                 {stats.map((statObj, statIndex) => {
                     const { stat, base_stat } = statObj
@@ -170,6 +183,7 @@ function PokeCard({ selectedPokemon }) {
             </div>
             <div>
                 <h3>Moves</h3>
+                <hr style={{ margin: "1rem 0" }} />
                 <div className="pokemon-move-grid">
                     {moves.map((moveObj, moveIndex) => {
                         return (
