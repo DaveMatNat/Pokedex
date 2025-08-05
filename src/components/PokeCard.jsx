@@ -8,10 +8,10 @@ function PokeCard({ selectedPokemon }) {
     const [data, setData] = useState(null)
     const [loading, setLoading] = useState(false)
     const [skill, setSkill] = useState(null)
-
-
+    const [loadingSkill, setLoadingSkill] = useState(false)
 
     const { name, height, abilities, stats, types, moves, sprites } = data || {}
+    // console.log(moves)
 
     const imgList = Object.keys(sprites || {}).filter(val => {
         if (!sprites[val]) { return false }
@@ -20,7 +20,50 @@ function PokeCard({ selectedPokemon }) {
     })
 
     async function fetchMoveData(move, moveURL) {
-        
+        console.log(loadingSkill)
+        if (loadingSkill || !localStorage || !moveURL) {
+            console.log("Something's wrong")
+            return
+        }
+
+        // check cache for move
+        let cache = {}
+        if (localStorage.getItem('pokemon-moves')) {
+            cache = JSON.parse(localStorage.getItem('pokemon-moves'))
+            console.log('Loaded Cache')
+        }
+
+        if (move in cache) {
+            setSkill(cache[move])
+            console.log(cache[move])
+            console.log('Found move in cache')
+            return
+        }
+
+        try {
+            setLoadingSkill(true)
+            const res = await fetch(moveURL)
+            const moveData = await res.json()
+            console.log(`Fetched move from API`, moveData)
+            const description = moveData?.flavor_text_entries.filter(
+                val => {
+                    return val.version_group.name = 'firered-leafgreen'
+                })[0]?.flavor_text
+            console.log(description)
+
+            const skillData = {
+                name: move,
+                description
+            }
+            setSkill(skillData)
+            cache[move] = skillData
+            localStorage.setItem('pokemon-moves', JSON.stringify(cache))
+
+        } catch (err) {
+            console.log(err)
+        } finally {
+            setLoadingSkill(false)
+        }
     }
 
     useEffect(() => {
@@ -37,6 +80,7 @@ function PokeCard({ selectedPokemon }) {
         if (selectedPokemon in cache) {
             // read from cache
             setData(cache[selectedPokemon])
+            console.log('Found pokemon in cache')
             return
         }
 
@@ -51,10 +95,13 @@ function PokeCard({ selectedPokemon }) {
 
                 const res = await fetch(finalURL)
                 const pokemonData = await res.json()
-                console.log(pokemonData)
+                // console.log(pokemonData)
 
-                setData(pokemonData)
-
+                let { moves } = pokemonData
+                moves.sort((a,b) => a.move.name.localeCompare(b.move.name))
+                setData({ ...pokemonData, moves})
+                
+                console.log('Fetched pokemon data')
                 cache[selectedPokemon] = pokemonData
                 localStorage.setItem("pokedex", JSON.stringify(cache))
             } catch (err) {
@@ -79,13 +126,14 @@ function PokeCard({ selectedPokemon }) {
 
     return (
         <div className="poke-card">
-            {skill && (<Modal handleCloseModal={() => {setSkill(null)}}>
+            {skill && (<Modal handleCloseModal={() => { setSkill(false) }}>
                 <div>
                     <h6>Name</h6>
-                    <h2></h2>
+                    <h2 className="skill-name">{skill.name.replaceAll('-', ' ')}</h2>
                 </div>
                 <div>
                     <h6>Description</h6>
+                    <p>{skill.description}</p>
                 </div>
             </Modal>)}
             <div>
@@ -125,7 +173,7 @@ function PokeCard({ selectedPokemon }) {
                 <div className="pokemon-move-grid">
                     {moves.map((moveObj, moveIndex) => {
                         return (
-                            <button className="pokemon-move" onClick={() => { }} key={moveIndex}>
+                            <button className="pokemon-move" onClick={() => { fetchMoveData(moveObj?.move?.name, moveObj?.move?.url) }} key={moveIndex}>
                                 <p>{moveObj?.move?.name.replaceAll('-', ' ')}</p>
                             </button>
                         )
