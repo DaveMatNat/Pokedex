@@ -116,7 +116,7 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: "Eczar", serif;
+    font-family: "system-ui", serif;
 }
 
 body {
@@ -144,7 +144,7 @@ h4,
 h5,
 h6,
 button {
-    font-family: "Grenze", serif;
+    font-family: "system-ui", serif;
     width: fit-content;
 }
 
